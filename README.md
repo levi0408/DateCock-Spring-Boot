@@ -24,8 +24,6 @@ DateCock은 연령대, 지역, 데이트 유형을 기반으로
 
 ## Ⅲ 주요 기여
 
-## Ⅲ. 주요 기여
-
 - Spring Boot 기반 프로젝트 구조 설계 및 전반 기획
 - JPA 기반 Entity-DTO-Service-Repository 구조 구현
 - Spring Security를 이용한 로그인 및 인증 처리
