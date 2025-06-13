@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>로그인 / 회원가입</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script type="text/javascript">
+    function openNaverLoginPopup(url) {}
+    function openPopup1() {}
+    function openPopup2() {}
+    function openPopup3() {}
+
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error')) {
+            alert('회원이 아닙니다. 아이디와 비밀번호를 다시 확인하세요.');
+        }
+
+        let isIdAvailable = false;
+        let isPasswordValid = false;
+        let isPasswordConfirmValid = false;
+
+        $('#idcheck').click(function() {
+            const id = $('#id').val();
+            const idCheckMsg = $('#id_check_msg');
+
+            if (!id) {
+                idCheckMsg.text('아이디를 입력해주세요.').removeClass('valid').addClass('invalid');
+                isIdAvailable = false;
+                updateSignupButtonState();
+                return;
+            }
+
+            $.ajax({
+                url: '/checkUserId',
+                type: 'GET',
+                data: { id: id },
+                success: function(response) {
+                    if (response.isAvailable) {
+                        idCheckMsg.text('사용 가능한 아이디입니다.').removeClass('invalid').addClass('valid');
+                        isIdAvailable = true;
+                    } else {
+                        idCheckMsg.text('이미 사용 중인 아이디입니다.').removeClass('valid').addClass('invalid');
+                        isIdAvailable = false;
+                    }
+                    updateSignupButtonState();
+                },
+                error: function() {
+                    idCheckMsg.text('아이디 중복 확인 중 오류가 발생했습니다.').removeClass('valid').addClass('invalid');
+                    isIdAvailable = false;
+                    updateSignupButtonState();
+                }
+            });
+        });
+
+        $('#id').on('input', function() {
+            $('#id_check_msg').text('');
+            isIdAvailable = false;
+            updateSignupButtonState();
+        });
+
+        $('#pwd').on('keyup', function() {
+            var password = $(this).val();
+            var $pwdRuleMsg = $('#pwd_rule_msg');
+            var valid = true;
+            var messages = [];
+
+            if (password.length < 4) {
+                messages.push('4자 이상');
+                valid = false;
+            }
+            if (!/[!@#$%^&*()]/.test(password)) {
+                messages.push('특수문자(@$!%*?&) 1개 이상');
+                valid = false;
+            }
+
+            if (!valid) {
+                $pwdRuleMsg.text('비밀번호는 ' + messages.join(', ') + '를 포함해야 합니다.').removeClass('valid').addClass('invalid').show();
+                isPasswordValid = false;
+            } else {
+                $pwdRuleMsg.text('비밀번호가 유효합니다.').removeClass('invalid').addClass('valid').show();
+                isPasswordValid = true;
+            }
+            validatePasswordConfirm();
+            updateSignupButtonState();
+        });
+
+        $('#pwd_confirm').on('keyup', function() {
+            validatePasswordConfirm();
+            updateSignupButtonState();
+        });
+
+        function validatePasswordConfirm() {
+            const password = $('#pwd').val();
+            const passwordConfirm = $('#pwd_confirm').val();
+            const pwdConfirmMsg = $('#pwd_confirm_msg');
+
+            if (passwordConfirm === "") {
+                 pwdConfirmMsg.text('비밀번호를 다시 입력해주세요.').removeClass('valid').addClass('invalid').show();
+                 isPasswordConfirmValid = false;
+            } else if (password === passwordConfirm) {
+              pwdConfirmMsg.text('비밀번호가 일치합니다.').removeClass('invalid').addClass('valid').show();
+              isPasswordConfirmValid = true;
+            } else {
+              pwdConfirmMsg.text('비밀번호가 일치하지 않습니다.').removeClass('valid').addClass('invalid').show();
+              isPasswordConfirmValid = false;
+            }
+        }
+
+        $('#signupForm').submit(function(event) {
+            const requiredFields = [
+                $('#id'), $('#pwd'), $('#pwd_confirm'),
+                $('#email'), $('#name'), $('#birth'), $('#phone')
+            ];
+            let allFieldsFilled = true;
+            requiredFields.forEach(function(field) {
+                if (field.val() === '') {
+                    allFieldsFilled = false;
+                    field.focus();
+                    return false;
+                }
+            });
+
+            if (!allFieldsFilled) {
+                alert('회원정보를 정확하게 입력하여 주세요!');
+                event.preventDefault();
+                return false;
+            }
+
+            if (!isIdAvailable) {
+                alert('아이디 중복 확인을 해주세요.');
+                $('#id').focus();
+                event.preventDefault();
+                return;
+            }
+            if (!isPasswordValid) {
+                alert('비밀번호가 유효하지 않습니다. 규칙을 확인해주세요.');
+                $('#pwd').focus();
+                event.preventDefault();
+                return;
+            }
+            if (!isPasswordConfirmValid) {
+                alert('비밀번호 확인이 일치하지 않습니다.');
+                $('#pwd_confirm').focus();
+                event.preventDefault();
+                return;
+            }
+            return true;
+        });
+
+        function handlePostSignupRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedSuccessMessage = urlParams.get('successMessage');
+
+            if (encodedSuccessMessage) {
+                const successMessage = decodeURIComponent(encodedSuccessMessage);
+                setTimeout(function() {
+                    const goToLogin = confirm(successMessage + "\n로그인 하시겠습니까? (취소 시 메인 페이지로 이동)");
+                    if (goToLogin) {
+                        window.location.href = '/DateCocklog';
+                    } else {
+                        window.location.href = '/main';
+                    }
+                }, 100);
+            }
+        }
+
+        handlePostSignupRedirect();
+    });
+  </script>
+  <style>
+    .error-message {
+        display: block;
+        font-size: 0.8em;
+        margin-top: 5px;
+        min-height: 1em;
+    }
+    .server-error {
+        text-align: center; color: red; margin-bottom: 15px; font-weight: bold;
+    }
+    .sns-login-section {
+        margin-top: 25px; text-align: center;
+    }
+    .sns-login-section h3 {
+        font-size: 1em; color: #6a6f8c; margin-bottom: 15px; font-weight: 600;
+    }
+    .sns-buttons a {
+        display: inline-block; margin: 0 5px; text-decoration: none;
+    }
+    .sns-buttons img {
+        height: 45px; width: auto; vertical-align: middle;
+    }
+    .valid {
+        color: green !important;
+    }
+    .invalid {
+        color: red !important;
+    }
+  </style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-html">
+    <input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab">로그인</label>
+    <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">회원가입</label>
+    <div class="login-form">
+      <form th:action="@{/loginprocess}" method="post">
+        <div class="sign-in-htm">
+          <div class="group">
+            <label for="loginId" class="label">아이디</label>
+            <input id="loginId" name="loginId" type="text" class="input">
+          </div>
+          <div class="group">
+            <label for="loginPw" class="label">비밀번호</label>
+            <input id="loginPw" name="loginPw" type="password" class="input" data-type="password">
+          </div>
+          <div class="group">
+            <input type="submit" class="button" value="로그인">
+          </div>
+          <div class="group">
+            <button type="button" class="button" th:onclick="|location.href='@{/}'|">취소</button>
+          </div>
+          <div class="sns-login-section">
+            <h3 class="snslogin">SNS 아이디로 로그인하기</h3>
+            <div class="sns-buttons">
+              <a href="#" th:onclick="|openNaverLoginPopup('YOUR_NAVER_API_URL_HERE'); return false;|">
+                <img th:src="@{/image/naver.svg}" alt="네이버 로그인" />
+              </a>
+              <a href="#" onclick="openPopup1(); return false;">
+                <img th:src="@{/image/kakaotalk.png}" alt="카카오 로그인" />
+              </a>
+              <a href="#" onclick="openPopup2(); return false;">
+                <img th:src="@{/image/apple.svg}" alt="애플 로그인" />
+              </a>
+              <a href="#" onclick="openPopup3(); return false;">
+                <img th:src="@{/image/facebook.png}" alt="페이스북 로그인" />
+              </a>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="foot-lnk">
+            <a th:href="@{/membersearch}">아이디 또는 비밀번호를 잊어버리셨습니까?</a>
+          </div>
+          <div class="logo-area" style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+            <img th:src="@{/image/DateCocklogo.png}" alt="DATECOCK 로고" style="max-width: 250px; height: auto;">
+          </div>
+        </div>
+      </form>
+
+      <form id="signupForm" th:action="@{/membersave}" method="post" th:object="${memberDTO}">
+        <div class="sign-up-htm">
+          <div th:if="${errorMessage}" class="server-error" th:text="${errorMessage}"></div>
+          <div class="group">
+            <label for="id" class="label">아이디</label>
+            <input id="id" type="text" class="input" th:field="*{id}" required>
+            <button type="button" id="idcheck" class="button" style="margin-top: 10px; width: auto; padding: 5px 10px;">중복 확인</button>
+            <span id="id_check_msg" class="error-message"></span>
+          </div>
+          <div class="group">
+            <label for="pwd" class="label">비밀번호</label>
+            <input id="pwd" type="password" class="input" th:field="*{password}" required>
+            <span id="pwd_rule_msg" class="error-message"></span>
+          </div>
+          <div class="group">
+            <label for="pwd_confirm" class="label">비밀번호 확인</label>
+            <input id="pwd_confirm" name="pwd_confirm" type="password" class="input" required>
+            <span id="pwd_confirm_msg" class="error-message"></span>
+          </div>
+          <div class="group">
+            <label for="email" class="label">Email 주소</label>
+            <input id="email" type="email" class="input" th:field="*{email}" required>
+          </div>
+          <div class="group">
+            <label for="name" class="label">이름</label>
+            <input id="name" type="text" class="input" th:field="*{name}" required>
+          </div>
+          <div class="group">
+            <label for="birth" class="label">생년월일</label>
+            <input id="birth" type="date" class="input" th:field="*{birth}" required>
+          </div>
+          <div class="group">
+            <label for="phone" class="label">전화번호</label>
+            <input id="phone" type="tel" class="input" th:field="*{phone}" required>
+          </div>
+          <div class="group">
+            <input type="submit" id="signupButton" class="button" value="회원가입 완료">
+          </div>
+          <div class="hr"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>추천된 데이트코스</title>
+  <style>
+    .result-box {
+      display: flex;
+      background-color: rgba(255, 255, 255, 0.85);
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      max-width: 1000px;
+      margin: 20px auto;
+    }
+    .result-image {
+      flex: 1;
+      max-width: 300px;
+    }
+    .result-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .result-info {
+      flex: 2;
+      padding: 20px;
+    }
+    .result-info h2 {
+      margin-top: 0;
+    }
+    .result-info p {
+      margin: 4px 0;
+      font-size: 16px;
+    }
+    .tag {
+      font-size: 14px;
+      font-weight: bold;
+      color: #ff6699;
+      margin-bottom: 6px;
+    }
+    .result-button {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+    }
+    .reserve-btn {
+      padding: 10px 20px;
+      background-color: #ff6699;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .reserve-btn:hover {
+      background-color: #e65c8f;
+    }
+  </style>
+
+</head>
+<body>
+
+<h2 style="color:white">추천된 데이트코스</h2>
+
+<div th:each="item : ${resultList}" class="result-box">
+  <div class="result-image">
+    <img th:src="@{/image/{img}(img=${item.image})}" th:alt="${item.businessname}" />
+  </div>
+  <div class="result-info">
+    <div class="tag"></div>
+    <h2 th:text="${item.businessname}">업체명</h2>
+    <hr>
+    <p><strong>주소:</strong> <span th:text="${item.address}">주소</span></p>
+    <p><strong>영업시간:</strong> <span th:text="${item.businesstime}">영업시간</span></p>
+    <p><strong>전화번호:</strong> <span th:text="${item.phone}">전화번호</span></p>
+    <p><strong>추가정보:</strong> <span th:text="${item.information}">정보</span></p>
+  </div>
+  <div class="result-button">
+    <a th:href="@{/datereservation(businessname=${item.businessname})}">
+      <button class="reserve-btn">예약하기</button>
+    </a>
+  </div>
+</div>
+</body>
+</html>

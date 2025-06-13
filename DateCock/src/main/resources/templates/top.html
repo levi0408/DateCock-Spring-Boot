@@ -1,0 +1,52 @@
+<!-- templates/top.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
+<body>
+
+<div class="logo">
+    <a th:href="@{/}">
+        <img th:src="@{/image/DateCocklogo.png}" alt="로고">
+    </a>
+</div>
+
+
+
+<ul class="menu">
+    <!-- 개인 로그인 상태 -->
+    <li th:if="${personalloginstate}">
+        <div th:text="|${name} 님 어서오세요.|" class="welcome"></div>
+        <a th:href="@{/mypage}" th:classappend="${isMypage} ? 'active'">[ 마이 페이지 ]</a>
+        <a th:href="@{/logout}">[ 로그아웃 ]</a>
+        <a th:href="@{/main}" th:classappend="${isMain} ? 'active'">[ Home ]</a>
+        <a th:href="@{/datecourseout}" >[ 데이트코스 ]</a>
+        <a th:href="@{/recommendation}" >[ 데이트코스 추천 ]</a>
+        <a th:href="@{/game}" >[ 하트 피하기 게임 ]</a>
+        <a th:href="@{/listup}" >[ 커뮤니티 ]</a>
+        <a th:href="@{/support}" th:classappend="${isSupport} ? 'active'">[ 고객센터 ]</a>
+    </li>
+
+    <!-- 사업자 로그인 상태 -->
+    <li th:if="${buisnessloginstate}">
+        <div th:text="|${businessname} 대표님 어서오세요.|" class="welcome"></div>
+        <a th:href="@{/businessmypage}" th:classappend="${isBusinessmypage} ? 'active'">[ 마이 페이지 ]</a>
+        <a th:href="@{/logout}">[ 로그아웃 ]</a>
+        <a th:href="@{/businessinput}" th:classappend="${isBusinessinput} ? 'active'">[ 가게 등록 ]</a>
+        <a th:href="@{/businessout}" th:classappend="${isBusinessinput} ? 'active'">[ 내가 등록한 가게 정보 ]</a>
+        <a th:href="@{/support}" th:classappend="${isSupport} ? 'active'">[ 고객센터 ]</a>
+    </li>
+
+    <!-- 비로그인 상태 -->
+    <li th:if="${personalloginstate != true and buisnessloginstate != true}">
+        <a th:href="@{/DateCocklog}">Login</a>
+        <a th:href="@{/main}" th:classappend="${isMain} ? 'active'">[ Home ]</a>
+    <a th:href="@{/datecourseout}" >[ 데이트코스 ]</a>
+    <a th:href="@{/recommendation}" >[ 데이트코스 추천 ]</a>
+    <a th:href="@{/game}" >[ 하트 피하기 게임 ]</a>
+    <a th:href="@{/listup}" >[ 커뮤니티 ]</a>
+    <a th:href="@{/support}" >[ 고객센터 ]</a>
+
+    </li>
+</ul>
+
+</body>
+</html>

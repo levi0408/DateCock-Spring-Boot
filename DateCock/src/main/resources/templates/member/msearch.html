@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/fragments/layout}">
+<head>
+    <title layout:fragment="title">비밀번호 재설정</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            let isPasswordValid = false;
+            let isPasswordConfirmValid = false;
+
+            function displayMessage(element, message, isValidState) {
+                element.text(message);
+                if (isValidState === true) {
+                    element.removeClass('invalid').addClass('valid').show();
+                } else if (isValidState === false) {
+                    element.removeClass('valid').addClass('invalid').show();
+                } else {
+                    element.text('').hide();
+                }
+
+                if (element.attr('id') === 'pwd_rule_msg') {
+                    isPasswordValid = (isValidState === true);
+                } else if (element.attr('id') === 'pwd_confirm_msg') {
+                    isPasswordConfirmValid = (isValidState === true);
+                }
+                updateResetButtonState();
+            }
+
+            $('#newPassword').on('keyup', function() {
+                var password = $(this).val();
+                var $pwdRuleMsg = $('#pwd_rule_msg');
+                var valid = true;
+                var messages = [];
+
+                if (password.length === 0) {
+                    displayMessage($pwdRuleMsg, '', null);
+                } else {
+                    if (password.length < 4) { messages.push('4자 이상'); valid = false; }
+                    if (!/[!@#$%^&*()]/.test(password)) { messages.push('특수문자(@$!%*?&) 1개 이상'); valid = false; }
+
+                    if (!valid) {
+                        displayMessage($pwdRuleMsg, '비밀번호는 ' + messages.join(', ') + '를 포함해야 합니다.', false);
+                    } else {
+                        displayMessage($pwdRuleMsg, '비밀번호가 유효합니다.', true);
+                    }
+                }
+                validateNewPasswordConfirm();
+            });
+
+            $('#newPasswordConfirm').on('keyup', function() {
+                validateNewPasswordConfirm();
+            });
+
+            function validateNewPasswordConfirm() {
+                const password = $('#newPassword').val();
+                const passwordConfirm = $('#newPasswordConfirm').val();
+                const pwdConfirmMsg = $('#pwd_confirm_msg');
+
+                if (passwordConfirm.length === 0) {
+                    displayMessage(pwdConfirmMsg, '', null);
+                } else if (password === passwordConfirm) {
+                    displayMessage(pwdConfirmMsg, '비밀번호가 일치합니다.', true);
+                } else {
+                    displayMessage(pwdConfirmMsg, '비밀번호가 일치하지 않습니다.', false);
+                }
+            }
+
+            function updateResetButtonState() {
+                const resetButton = $('#resetPwdButton');
+                if (isPasswordValid && isPasswordConfirmValid) {
+                    resetButton.prop('disabled', false);
+                } else {
+                    resetButton.prop('disabled', true);
+                }
+            }
+
+            $('#newPassword').trigger('keyup');
+            $('#newPasswordConfirm').trigger('keyup');
+            updateResetButtonState();
+
+            $('#updatePasswordForm').submit(function(event) {
+                $('#newPassword').trigger('keyup');
+                $('#newPasswordConfirm').trigger('keyup');
+
+                if (!isPasswordValid || !isPasswordConfirmValid) {
+                    alert('비밀번호를 올바르게 입력하고 확인해주세요.');
+                    event.preventDefault();
+                    if (!isPasswordValid) { $('#newPassword').focus(); }
+                    else if (!isPasswordConfirmValid) { $('#newPasswordConfirm').focus(); }
+                    return false;
+                }
+                return true;
+            });
+        });
+    </script>
+    <style layout:fragment="style">
+        .login-wrap { min-height: 650px; }
+        .login-html { padding: 50px 70px; }
+        .login-form .group { margin-bottom: 25px; }
+        .login-form .group .label { margin-bottom: 10px; font-size: 1.0em; }
+        .login-form .group .input { padding: 16px 20px; font-size: 1.0em; width: 100%; }
+        .login-form .group .button { padding: 15px 20px; font-size: 1.1em; margin-top: 15px; width: 100%; }
+        .server-message { text-align: center; color: green; margin-bottom: 15px; font-weight: bold; font-size: 1.1em; }
+        .server-error { text-align: center; color: red; margin-bottom: 15px; font-weight: bold; font-size: 1.1em; }
+        .logo-area { margin-top: 30px; margin-bottom: 20px; }
+        .hr { margin: 30px 0; }
+        .error-message { font-size: 0.85em; margin-top: 5px; min-height: 1.2em; color: gray; }
+        .error-message.valid { color: green; }
+        .error-message.invalid { color: red; }
+    </style>
+</head>
+<body>
+<div layout:fragment="body">
+    <div class="login-wrap">
+        <div class="login-html">
+            <div class="login-form">
+                <div class="sign-in-htm" style="display: block; transform: rotateY(0deg);">
+                    <div class="logo-area" style="text-align: center; margin-top: 0; margin-bottom: 20px;">
+                        <img th:src="@{/image/DateCocklogo.png}" alt="DATECOCK 로고" style="max-width: 250px; height: auto;">
+                    </div>
+                    <h2>비밀번호 재설정</h2>
+                    <p style="text-align: center; margin-bottom: 20px; color: #555;">
+                        <span th:text="${id}"></span> 님의 새로운 비밀번호를 설정해주세요.
+                    </p>
+
+                    <div th:if="${errorMessage}" class="server-error" th:text="${errorMessage}"></div>
+                    <div th:if="${successMessage}" class="server-message" th:text="${successMessage}"></div>
+
+                    <form id="updatePasswordForm" th:action="@{/updatePassword}" method="post">
+                        <input type="hidden" name="id" th:value="${id}" />
+                        <input type="hidden" name="email" th:value="${email}" />
+
+                        <div class="group">
+                            <label for="newPassword" class="label">새 비밀번호</label>
+                            <input id="newPassword" name="newPassword" type="password" class="input" required placeholder="새 비밀번호">
+                            <span id="pwd_rule_msg" class="error-message"></span>
+                        </div>
+                        <div class="group">
+                            <label for="newPasswordConfirm" class="label">새 비밀번호 확인</label>
+                            <input id="newPasswordConfirm" name="newPasswordConfirm" type="password" class="input" required placeholder="새 비밀번호 확인">
+                            <span id="pwd_confirm_msg" class="error-message"></span>
+                        </div>
+                        <div class="group">
+                            <input type="submit" id="resetPwdButton" class="button" value="비밀번호 변경">
+                        </div>
+                        <div class="group">
+                            <button type="button" class="button" onclick="location.href='/DateCocklog'">취소</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

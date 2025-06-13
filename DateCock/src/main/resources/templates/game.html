@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/fragments/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>하트 피하기 게임</title>
+    <style>
+        canvas {
+          background: url('/image/게임배경.png') no-repeat center center;
+          background-size: cover;
+          display: block;
+          margin: 30px auto;
+          border: 3px solid #ffa5c3;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="body">
+<div style="text-align:center; margin-top:30px;">
+    <button id="startButton" disabled style="padding: 12px 24px; font-size: 18px; background-color: #ffb6c1; border: none; border-radius: 10px; cursor: pointer;">
+        게임 시작
+    </button>
+</div>
+
+<canvas id="gameCanvas" width="750" height="750" style="display: none;"></canvas>
+
+<script th:src="@{/js/heartgame.js}"></script>
+</div>
+</body>
+</html>

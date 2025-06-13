@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+  <meta charset="UTF-8">
+  <title>비즈니스 아웃</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+      background-image: url('/image/sakura.PNG');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-attachment: fixed;
+      background-size: cover;
+    }
+
+    .timeline-container {
+      max-width: 1200px;
+      margin: 50px auto;
+      background-color: #fff;
+      display: flex;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .timeline-image {
+      flex: 1;
+      min-width: 400px;
+      background-color: #ddd;
+    }
+
+    .timeline-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .timeline-text {
+      flex: 1;
+      padding: 40px 30px;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .timeline-item {
+      margin-bottom: 30px;
+    }
+
+    .timeline-item h3 {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .timeline-item p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .mint-button, .red-button {
+      box-sizing: border-box;
+      appearance: none;
+      border: 2px solid;
+      border-radius: 0.6em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 1.2em 2.8em;
+      text-decoration: none;
+      text-transform: uppercase;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .mint-button {
+      color: #AAF0D1;
+      border-color: #AAF0D1;
+    }
+    .mint-button:hover {
+      color: #fff;
+      background-color: #AAF0D1;
+    }
+
+    .red-button {
+      color: #e74c3c;
+      border-color: #e74c3c;
+    }
+    .red-button:hover {
+      color: #fff;
+      background-color: #e74c3c;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      width: 300px;
+      border-radius: 10px;
+      text-align: center;
+      margin: 15% auto;
+    }
+
+    .modal-buttons {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-around;
+    }
+
+    .modal-buttons button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #e74c3c;
+      color: white;
+      cursor: pointer;
+    }
+
+    .modal-buttons button:hover {
+      background-color: #c0392b;
+    }
+  </style>
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
+
+<body>
+<div layout:fragment="body">
+  <div th:each="result : ${dto}" class="timeline-container">
+    <div class="timeline-image">
+      <img th:src="@{'/image/' + ${result.image}}" alt="대표 이미지">
+    </div>
+    <div class="timeline-text">
+      <div class="timeline-item"><h3>사업자등록번호</h3><p th:text="${result.businessnumber}"></p></div>
+      <div class="timeline-item"><h3>업체 이름</h3><p th:text="${result.businessname}"></p></div>
+      <div class="timeline-item"><h3>업체 주소</h3><p th:text="${result.address}"></p></div>
+      <div class="timeline-item"><h3>영업시간</h3><p th:text="${result.businesstime}"></p></div>
+      <div class="timeline-item"><h3>전화번호</h3><p th:text="${result.phone}"></p></div>
+      <div class="timeline-item"><h3>추가 정보</h3><p th:text="${result.information}"></p></div>
+      <div class="timeline-item"><h3>필터 나이</h3><p th:text="${result.age} + '대'"></p></div>
+      <div class="timeline-item"><h3>필터 주소</h3><p th:text="${result.zone} + '지역'"></p></div>
+      <div class="timeline-item"><h3>필터 데이트취향</h3><p th:text="${result.activity}"></p></div>
+
+      <div class="button-group">
+        <a th:href="@{/businessupdate(businessnumber=${result.businessnumber})}" class="mint-button">수정</a>
+        <button class="red-button delete-btn"
+                th:data-number="${result.businessnumber}">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 삭제 모달 -->
+  <div id="customConfirm" class="modal">
+    <div class="modal-content">
+      <p>정말 삭제하시겠습니까?</p>
+      <div class="modal-buttons">
+        <button id="confirmYes">삭제</button>
+        <button id="confirmNo">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    const token = $("meta[name='_csrf']").attr("content");
+    const header = $("meta[name='_csrf_header']").attr("content");
+
+    let selectedNumber = "";
+
+    $(document).ready(function () {
+      $(".delete-btn").click(function (e) {
+        e.preventDefault();
+        selectedNumber = $(this).data("number");
+        $("#customConfirm").fadeIn();
+      });
+
+      $("#confirmYes").click(function () {
+        $.ajax({
+          type: "post",
+          url: "/alldelete",
+          data: { businessnumber: selectedNumber },
+          beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token); //  CSRF 토큰 전송
+          },
+          success: function () {
+            alert("삭제되었습니다.");
+            $("button[data-number='" + selectedNumber + "']").closest(".timeline-container").remove();
+          },
+          error: function () {
+            alert("오류 발생! 다시 시도해주세요.");
+          },
+          complete: function () {
+            $("#customConfirm").fadeOut();
+          }
+        });
+      });
+
+      $("#confirmNo").click(function () {
+        $("#customConfirm").fadeOut();
+      });
+    });
+  </script>
+</div>
+</body>
+</html>

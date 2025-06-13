@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- ✅ CSRF 토큰 메타 태그 추가 -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var isPasswordMatch = false;
+            var isbncAndAvailable = false;
+            var isPasswordFormatValid = false;
+
+            // ✅ 사업자등록번호 중복 확인
+            $("#businessnumbercheck").click(function () {
+                console.log("💥 중복확인 버튼 클릭됨");
+                var businessnumber = $("#businessnumber").val();
+                if (!businessnumber) {
+                    alert("사업자 등록 번호를 입력해주세요.");
+                    $("#businessnumber").focus();
+                    return;
+                }
+
+                // ✅ CSRF 토큰 동적 삽입
+                const token = document.querySelector('meta[name="_csrf"]').content;
+                const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+                $.ajax({
+                    type: "POST",
+                    url: "/businessnumbercheck2",
+                    data: { businessnumber: businessnumber },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (response) {
+                        if (response === "yes") {
+                            alert("사용 가능한 사업자번호입니다.");
+                            isbncAndAvailable = true;
+                        } else {
+                            alert("이미 사용 중이거나 사용할 수 없습니다.");
+                            isbncAndAvailable = false;
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("서버 요청 실패: " + xhr.status);
+                    }
+                });
+            });
+
+            $("#businessnumber").on('keyup', function () {
+                isbncAndAvailable = false;
+            });
+
+            // ✅ 비밀번호 형식 검사
+            $("#password").on('keyup', function () {
+                var num = $(this).val();
+                var messageSpan = $("#pwd_rule_msg2");
+                var specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+
+                if (num.length == 0) {
+                    messageSpan.hide();
+                    isPasswordFormatValid = false;
+                } else if (specialCharRegex.test(num)) {
+                    messageSpan.text("사용 가능한 비밀번호 형식입니다").css("color", "green").show();
+                    isPasswordFormatValid = true;
+                } else {
+                    messageSpan.text("비밀번호에 특수문자(!@#$%^&* 등)을 1개이상 포함해야합니다.").css("color", "red").show();
+                    isPasswordFormatValid = false;
+                }
+                $("#password_confirm").trigger('keyup');
+            });
+
+            // ✅ 비밀번호 일치 확인
+            $("#password, #password_confirm").on('keyup', function () {
+                var pwd = $("#password").val();
+                var pwdConfirm = $("#password_confirm").val();
+                var messageSpan = $("#password_confirm_msg");
+
+                if (pwd || pwdConfirm) {
+                    if (pwd === pwdConfirm && pwd !== "") {
+                        messageSpan.text("비밀번호가 일치합니다.").css("color", "green");
+                        isPasswordMatch = true;
+                    } else {
+                        messageSpan.text("비밀번호가 일치하지 않습니다.").css("color", "red");
+                        isPasswordMatch = false;
+                    }
+                    messageSpan.show();
+                } else {
+                    messageSpan.hide();
+                    isPasswordMatch = false;
+                }
+            });
+
+            // ✅ 최종 제출 검사
+            $("#signupForm").on('submit', function (event) {
+                if (!isbncAndAvailable) {
+                    alert("사업자 등록 번호 중복확인을 완료해주세요.");
+                    event.preventDefault();
+                    $('#businessnumber').focus();
+                    return false;
+                }
+                if (!isPasswordMatch) {
+                    alert("비밀번호가 일치하지 않습니다.");
+                    event.preventDefault();
+                    return false;
+                }
+                if (!isPasswordFormatValid) {
+                    alert("비밀번호 형식이 올바르지 않습니다.");
+                    event.preventDefault();
+                    $("#password").focus();
+                    return false;
+                }
+                return true;
+            });
+
+        });
+    </script>
+
+    <style type="text/css">
+        .recommend-wrapper {
+            background: url("[[@{/image/ivent1.png}]]") no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            padding: 60px 0;
+        }
+
+        .error-message {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .custom-link {
+            color: gray;
+            text-decoration: underline;
+            font-size: 15px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .custom-link:hover {
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 성공/실패 메시지 alert -->
+<script th:if="${successMessage != null}">
+    alert([[${successMessage}]]);
+</script>
+<script th:if="${errorMessage != null}">
+    alert([[${errorMessage}]]);
+</script>
+
+<div class="recommend-wrapper">
+    <div class="login-wrap">
+        <div class="login-html">
+            <input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab">Sign In</label>
+            <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">Sign Up</label>
+            <div class="login-form">
+
+                <!-- 로그인 Form -->
+                <form th:action="@{/loginprocess}" method="post">
+                    <div class="sign-in-htm">
+                        <div class="group">
+                            <label for="businessnumberA" class="label">사업자등록번호</label>
+                            <input id="businessnumberA" type="text" name="loginId" class="input">
+                        </div>
+
+                        <div class="group">
+                            <label for="businesspwA" class="label">비밀번호</label>
+                            <input id="businesspwA" type="password" name="loginPw" class="input" data-type="password">
+                        </div>
+
+                        <div class="group">
+                            <input type="submit" class="button" value="로그인">
+                        </div>
+
+                        <div class="group">
+                            <button type="button" class="button" th:onclick="|location.href='@{/main}'|">취소</button>
+                        </div>
+
+                        <div class="group center-link">
+                            <a class="custom-link" th:href="@{/businessresult}">사업자 번호, 또는 비밀번호를 잊어버리셨나요?</a>
+                        </div>
+
+                        <div class="logo-area" style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+                            <img th:src="@{/image/DateCocklogo.png}" alt="DATECOCK 로고" style="max-width: 250px; height: auto;">
+                        </div>
+                    </div>
+                </form>
+
+                <!-- 회원가입 Form -->
+                <form id="signupForm" th:action="@{/businessmembersave}" method="post">
+                    <div class="sign-up-htm">
+
+                        <div class="group">
+                            <label for="businessnumber" class="label">사업자 등록 번호</label>
+                            <input id="businessnumber" type="text" class="input" name="businessnumber"
+                                   placeholder="-를 제외한 번호(10자리) 입력해주세요. ex)0123456789 " maxlength="20">
+                            <button type="button" id="businessnumbercheck" class="button"
+                                    style="margin-top: 10px; width: auto; padding: 5px 10px;">중복 확인</button>
+                            <div class="error-message" id="numberErrorMessage"></div>
+                        </div>
+
+                        <div class="group">
+                            <label for="password" class="label">비밀번호</label>
+                            <input id="password" type="password" class="input" name="password"
+                                   placeholder="비밀번호" maxlength="20">
+                            <span id="pwd_rule_msg2" class="error-message"></span>
+                        </div>
+
+                        <div class="group">
+                            <label for="password_confirm" class="label">비밀번호 확인</label>
+                            <input id="password_confirm" type="password" class="input" name="password_confirm"
+                                   placeholder="비밀번호 확인" maxlength="20">
+                            <span id="password_confirm_msg" class="error-message"></span>
+                            <div class="error-message" id="passwordErrorMessage"></div>
+                        </div>
+
+                        <div class="group">
+                            <label for="email" class="label">Email 주소</label>
+                            <input id="email" type="text" class="input" name="email" placeholder="이메일 ex)user@datecock.com">
+                        </div>
+
+                        <div class="group">
+                            <label for="phone" class="label">전화번호</label>
+                            <input id="phone" type="text" class="input" name="phone" placeholder="전화번호를 입력해주세요.">
+                        </div>
+
+                        <div class="group">
+                            <label for="businessname" class="label">이름</label>
+                            <input id="businessname" type="text" class="input" name="businessname">
+                        </div>
+
+                        <div class="group">
+                            <label for="birthyear" class="label">생년월일</label>
+                            <input id="birthyear" type="date" class="input" name="birthyear">
+                        </div>
+
+                        <div class="group">
+                            <input type="submit" class="button" value="Sign Up">
+                        </div>
+
+                        <div class="hr"></div>
+                        <div class="foot-lnk">
+                            <label for="tab-1">Already Member?</label>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+DATECOURSEOUT.HTML
+
+<!-- templates/datecourse/datecourseout.html -->
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title layout:fragment="title">데이트코스 소개</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { font-family: 'Noto Sans KR', sans-serif; background: #fefefe; color: #333; }
+
+        .content {
+          padding: 80px 20px;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .section {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 40px;
+          border-bottom: 5px solid #eee;
+          padding-bottom: 40px;
+        }
+
+        .section .text {
+          flex: 1;
+        }
+
+        .section .text .tag {
+          font-family: 'Oswald', sans-serif;
+          font-size: 12px; color: #aaa; letter-spacing: 1px;
+        }
+
+        .section .text h2 {
+          font-size: 28px; margin: 10px 0;
+        }
+
+        .section .text hr {
+          width: 52px; border: none;
+          border-bottom: 2px solid #aaa; margin: 10px 0 20px;
+        }
+
+        .section .text p {
+          font-size: 14px; line-height: 1.6; margin-bottom: 8px;
+        }
+
+        .section .image {
+          flex: 0 0 350px;
+          height: 240px;
+          overflow: hidden;
+          border-radius: 8px;
+          transform: translateX(-100px);
+        }
+
+        .section .image img {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .button-box {
+          margin-right: 110px;
+        }
+
+        .button-box .reserve-btn {
+          display: inline-block;
+          background-color: #ff4f9a;
+          color: #fff;
+          border: none;
+          border-radius: 20px;
+          padding: 15px 50px;
+          font-size: 18px;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .button-box .reserve-btn:hover {
+          background-color: #e64589;
+        }
+
+
+
+    <!-- 검색 바 부분 css-->
+
+
+.search-bar-wrapper {
+    width: 100vw;
+    position: fixed;
+    left: 0;
+    bottom: 60px;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+}
+
+.search-bar-form {
+    background: rgba(255,255,255,0.95);
+    border-radius: 24px;
+    box-shadow: 0 4px 24px rgba(200,200,200,0.13);
+    padding: 18px 30px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 500px;
+    justify-content: center;
+}
+
+.search-input-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.search-bar-form input[type="text"] {
+    border: 1.5px solid #ff4f9a;
+    border-radius: 18px;
+    outline: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    width: 340px;
+    background: #faf9fa;
+    transition: border 0.2s;
+    text-align: center;
+    margin: 0 18px;
+    box-shadow: 0 2px 8px rgba(255,79,154,0.10);
+}
+
+.search-bar-form input[type="text"]:focus {
+    border: 2px solid #ffb86c;
+    background: #fff;
+}
+
+.search-bar-form select {
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 12px 18px;
+    font-size: 16px;
+    background: #faf9fa;
+    color: #333;
+    transition: border 0.2s;
+    min-width: 110px;
+}
+
+.search-bar-form select:focus {
+    border: 1.5px solid #ff4f9a;
+    background: #fff;
+}
+
+.search-bar-form .search-btn {
+    background: linear-gradient(90deg, #ff4f9a 0%, #ffb86c 100%);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 12px 48px;  /* 버튼 폭을 넉넉하게 */
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(255,79,154,0.10);
+    letter-spacing: 2px;
+}
+
+.search-bar-form .search-btn:hover {
+    background: linear-gradient(90deg, #ffb86c 0%, #ff4f9a 100%);
+    box-shadow: 0 4px 16px rgba(255,79,154,0.16);
+}
+
+    </style>
+</head>
+
+<body>
+<div layout:fragment="body">
+    <div class="content">
+        <section class="section" th:each="result : ${list}">
+            <div class="text">
+                <div class="tag">데이트코스</div>
+                <h2 th:text="${result.businessname}">가게이름</h2>
+                <hr>
+                <p th:text="'주소: ' + ${result.address}">주소: ...</p>
+                <p th:text="'영업시간: ' + ${result.businesstime}">영업시간: ...</p>
+                <p th:text="'전화번호: ' + ${result.phone}">전화번호: ...</p>
+                <p th:text="'추가정보: ' + ${result.information}">추가정보: ...</p>
+            </div>
+
+            <div class="image">
+                <img th:src="@{/image/{img}(img=${result.image})}" th:alt="${result.businessname}" />
+            </div>
+
+            <div class="button-box">
+                <a class="reserve-btn"
+                   th:href="@{/datereservation(businessname=${result.businessname})}">
+                    예약하기
+                </a>
+            </div>
+
+        </section>
+    </div>
+    <!--검색 바 추가 부분-->
+    <div class="search-bar-wrapper">
+        <form action="businesssearch" method="get" class="search-bar-form">
+            <div class="search-input-center">
+                <input type="text" name="keyword" placeholder="가게명으로 검색">
+            </div>
+            <select name="zone">
+                <option value="">전체지역</option>
+                <option value="홍대">홍대</option>
+                <option value="강남">강남</option>
+                <option value="명동">명동</option>
+            </select>
+            <button type="submit" class="search-btn">검색</button>
+        </form>
+    </div>
+    <!--끝-->
+</div>
+</body>
+</html>

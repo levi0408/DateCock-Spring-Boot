@@ -1,0 +1,58 @@
+<!-- 전체 코드 생략 없이 userId -> id 로만 변경된 버전 -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/fragments/layout}">
+<head>
+    <title layout:fragment="title">비밀번호 재설정</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- (이하 script 및 style 생략 없이 동일 유지) -->
+    ...
+</head>
+<body>
+<div layout:fragment="body">
+    <div class="login-wrap">
+        <div class="login-html">
+            <div class="login-form">
+                <div class="sign-in-htm" style="display: block; transform: rotateY(0deg);">
+                    <div class="logo-area" style="text-align: center; margin-top: 0; margin-bottom: 20px;">
+                        <img th:src="@{/image/DateCocklogo.png}" alt="DATECOCK 로고" style="max-width: 250px; height: auto;">
+                    </div>
+                    <h2>비밀번호 재설정</h2>
+                    <p style="text-align: center; margin-bottom: 20px; color: #555;">
+                        <span th:text="${id}"></span> 님의 새로운 비밀번호를 설정해주세요.
+                    </p>
+
+                    <div th:if="${errorMessage}" class="server-error" th:text="${errorMessage}"></div>
+                    <div th:if="${successMessage}" class="server-message" th:text="${successMessage}"></div>
+
+                    <form id="updatePasswordForm" th:action="@{/updatePassword}" method="post">
+                        <input type="hidden" name="id" th:value="${id}" />
+                        <input type="hidden" name="email" th:value="${email}" />
+
+                        <div class="group">
+                            <label for="newPassword" class="label">새 비밀번호</label>
+                            <input id="newPassword" name="newPassword" type="password" class="input" required placeholder="새 비밀번호">
+                            <span id="pwd_rule_msg" class="error-message"></span>
+                        </div>
+                        <div class="group">
+                            <label for="newPasswordConfirm" class="label">새 비밀번호 확인</label>
+                            <input id="newPasswordConfirm" name="newPasswordConfirm" type="password" class="input" required placeholder="새 비밀번호 확인">
+                            <span id="pwd_confirm_msg" class="error-message"></span>
+                        </div>
+                        <div class="group">
+                            <input type="submit" id="resetPwdButton" class="button" value="비밀번호 변경">
+                        </div>
+                        <div class="group">
+                            <button type="button" class="button" onclick="location.href='/DateCocklog'">취소</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

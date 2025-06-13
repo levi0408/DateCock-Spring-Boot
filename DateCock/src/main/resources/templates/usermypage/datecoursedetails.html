@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약 내역</title>
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+    <style>
+        body {
+          margin: 0;
+          font-family: 'Noto Sans KR', sans-serif;
+          background-color: #fff;
+        }
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 40px 20px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .image-section {
+          width: 100%;
+          height: 400px;
+          background-color: #eee;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 12px;
+          margin-bottom: 40px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .image-section img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          border-radius: 12px;
+        }
+        .text-section {
+          background-color: #f9f9f9;
+          padding: 30px;
+          text-align: center;
+          font-size: 20px;
+          line-height: 1.8;
+          border-radius: 12px;
+          margin-bottom: 40px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          font-family: 'Gowun Dodum', sans-serif;
+        }
+        .fixed-buttons {
+          position: fixed;
+          top: 50%;
+          right: 40px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          transform: translateY(-50%);
+        }
+        .fixed-buttons button {
+          background-color: #ff4f9a;
+          color: #fff;
+          font-weight: bold;
+          font-size: 18px;
+          padding: 18px 40px;
+          border: none;
+          border-radius: 30px;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          transition: background 0.3s;
+        }
+        .red-button {
+          box-sizing: border-box;
+          appearance: none;
+          background-color: transparent;
+          border: 2px solid #e74c3c;
+          border-radius: 0.6em;
+          color: #e74c3c;
+          font-size: 1rem;
+          font-weight: 700;
+          margin: 20px 0;
+          padding: 1.2em 2.8em;
+          text-transform: uppercase;
+          cursor: pointer;
+        }
+        .red-button:hover {
+          background-color: #e74c3c;
+          color: #fff;
+        }
+        .modal {
+          display: none;
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.4);
+          z-index: 9999;
+        }
+        .modal-content {
+          background: #fff;
+          padding: 20px;
+          width: 300px;
+          margin: 15% auto;
+          border-radius: 10px;
+          text-align: center;
+        }
+        .modal-buttons {
+          margin-top: 15px;
+          display: flex;
+          justify-content: space-around;
+        }
+        .modal-buttons button {
+          padding: 8px 16px;
+          border: none;
+          border-radius: 6px;
+          background-color: #e74c3c;
+          color: #fff;
+          cursor: pointer;
+        }
+        .modal-buttons button:hover {
+          background-color: #c0392b;
+        }
+        h1 {
+          font-family: 'Gowun Dodum', 'Nanum Round';
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="body">
+<div class="container">
+    <div class="image-section">
+        <img th:src="@{/image/{file}(file=${dto.image})}" th:alt="${dto.businessname}">
+    </div>
+
+    <div class="text-section">
+        <p>
+            <span th:text="${dto.businessname}"></span><br>
+            주소: <span th:text="${dto.address}"></span><br>
+            영업시간: <span th:text="${dto.businesstime}"></span><br>
+            전화번호: <span th:text="${dto.phone}"></span><br>
+            추가정보: <span th:text="${dto.information}"> </span>
+        </p>
+    </div>
+
+        <div class="text-section">
+            <p>
+                예약자명: <span th:text="${result.name}"></span><br>
+                전화번호: <span th:text="${result.phone}"></span><br>
+                예약날짜: <span th:text="${#dates.format(result.day, 'yyyy-MM-dd')}"></span><br>
+                예약시간: <span th:text="${result.intime}"></span>
+            </p>
+        </div>
+
+        <div class="fixed-buttons">
+            <button class="red-button delete-btn"
+                    th:data-name="${result.name}"
+                    th:data-day="${result.day}"
+                    th:data-businessname="${result.businessname}">
+                예약 취소
+            </button>
+            <button onclick="location.href='mypage'">닫기</button>
+        </div>
+    </div>
+
+<!-- 삭제(예약취소) 모달 -->
+<div id="customConfirm" class="modal">
+    <div class="modal-content">
+        <p id="confirmMessage">정말 예약을 취소하시겠습니까?</p>
+        <div class="modal-buttons">
+            <button onclick="confirmYes()">예약 취소</button>
+            <button onclick="confirmNo()">되돌아가기</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(function () {
+    let token = $("meta[name='_csrf']").attr("content");
+    let header = $("meta[name='_csrf_header']").attr("content");
+
+    $(document).ajaxSend(function (e, xhr, options) {
+      xhr.setRequestHeader(header, token);
+    });
+  });
+
+  let selectedName = "";
+  let selectedDay = "";
+  let selectedBusinessname = "";
+
+  $(document).on("click", ".delete-btn", function (e) {
+    e.preventDefault();
+    selectedName = $(this).data("name");
+    selectedDay = $(this).data("day");
+    selectedBusinessname = $(this).data("businessname");
+    $("#customConfirm").fadeIn();
+  });
+
+  function confirmYes() {
+    $("#customConfirm").fadeOut();
+    $.ajax({
+      type: "POST",
+      url: "/reservationdelete",
+      data: {
+        name: selectedName,
+        day: selectedDay,
+        businessname: selectedBusinessname
+      },
+      success: function () {
+        alert("예약이 취소되었습니다.");
+        location.href = "/mypage";
+      },
+      error: function () {
+        alert("오류 발생! 다시 시도해주세요.");
+      }
+    });
+  }
+
+  function confirmNo() {
+    $("#customConfirm").fadeOut();
+  }
+</script>
+</div>
+</body>
+</html>

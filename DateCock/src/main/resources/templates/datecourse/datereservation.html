@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+  <title layout:fragment="title">예약 페이지</title>
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+
+    <style layout:fragment="style">
+      body {
+        margin: 0;
+        font-family: 'Noto Sans KR', sans-serif;
+        background-color: #fff;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .image-section {
+        width: 100%;
+        height: 400px;
+        background-color: #eee;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+        margin-bottom: 40px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .image-section img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 12px;
+      }
+
+      .text-section {
+        background-color: #f9f9f9;
+        padding: 30px;
+        text-align: center;
+        font-size: 20px;
+        line-height: 1.8;
+        border-radius: 12px;
+        margin-bottom: 40px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        font-family: 'Gowun Dodum', sans-serif;
+      }
+
+      .map-section {
+        width: 100%;
+        height: 350px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 40px;
+        position: relative;
+        z-index: 1;
+      }
+
+      #staticMap {
+        width: 100%;
+        height: 100%;
+      }
+
+      .fixed-buttons {
+        position: fixed;
+        top: 50%;
+        right: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        transform: translateY(-50%);
+        z-index: 9999;
+      }
+
+      .fixed-buttons button {
+        background-color: #ff4f9a;
+        color: #fff;
+        font-weight: bold;
+        font-size: 18px;
+        padding: 18px 40px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: background 0.3s;
+      }
+
+      .fixed-buttons button:hover {
+        background-color: #e64589;
+      }
+
+      .reservation-form {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px 40px;
+        border-radius: 12px;
+        width: 400px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        display: none;
+        z-index: 10000;
+      }
+
+      .reservation-form label {
+        display: block;
+        margin: 12px 0 4px;
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .reservation-form input {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+
+      .reservation-form .buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      .reservation-form button {
+        flex: 1;
+        padding: 14px 0;
+        margin: 0 5px;
+        background-color: #ff4f9a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .reservation-form button:hover {
+        background-color: #e64589;
+      }
+
+      .guestbook-wrap {
+        max-width: 800px;
+        margin: 60px auto;
+        text-align: center;
+      }
+
+      .guestbook-form {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+        font-family: 'Gowun Dodum', sans-serif;
+      }
+
+      .guestbook-form input[type="text"],
+      .guestbook-form textarea {
+        padding: 14px 18px;
+        border: 2px solid #ffb6d2;
+        border-radius: 10px;
+        font-size: 16px;
+        font-family: 'Gowun Dodum', sans-serif;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .guestbook-form textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .btn-ajax-submit {
+        background-color: #ff4f9a;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-size: 18px;
+        padding: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .btn-ajax-submit:hover {
+        background-color: #e64589;
+      }
+
+      .ajax-feedback {
+        color: green;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+
+      .guestbook-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .guestbook-item {
+        border-top: 1px solid #eee;
+        padding: 20px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .writer {
+        font-weight: bold;
+        width: 100px;
+      }
+
+      .memo {
+        flex: 1;
+        margin: 0 16px;
+      }
+
+      .time {
+        font-size: 0.85em;
+        color: #999;
+        white-space: nowrap;
+      }
+
+      .modal-content.success {
+        background: #ffe6f8;
+        border: 2px solid #ff85c0;
+        padding: 20px;
+        width: 320px;
+        margin: auto;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      #successMessage {
+        color: #d63384;
+        font-size: 16px;
+        line-height: 1.2;
+      }
+
+      .modal-buttons button#successOkBtn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        background-color: #ff85c0;
+        color: #fff;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      .modal-buttons button#successOkBtn:hover {
+        background-color: #d63384;
+      }
+    </style>
+  </head>
+
+
+  <body>
+<div layout:fragment="body">
+  <div class="image-section">
+    <img th:src="@{'/image/' + ${businessview.image}}" th:alt="${businessview.businessname}" />
+  </div>
+  <div class="text-section">
+    <p th:utext="${businessview.businessname} + '<br>주소: ' + ${businessview.address} + '<br>영업시간: ' + ${businessview.businesstime} + '<br>전화번호: ' + ${businessview.phone} + '<br>추가정보: ' + ${businessview.information}"></p>
+  </div>
+  <div class="map-section">
+    <div id="staticMap"></div>
+  </div>
+
+  <div class="fixed-buttons">
+    <button onclick="openReservation()">예약하기</button>
+    <button th:onclick="|location.href='@{/datecourseout}'|">취소</button>
+  </div>
+
+  <div class="reservation-form">
+    <form th:action="@{/reservationsave}" method="post">
+      <input type="hidden" name="image" th:value="${businessview.image}" />
+      <input type="hidden" name="id" th:value="${userid}" />
+      <input type="hidden" name="businessname" th:value="${businessview.businessname}" />
+      <label>이름</label>
+      <input type="text" name="name" th:value="${username}" readonly />
+      <label>전화번호</label>
+      <input type="tel" name="phone" th:value="${userphone}" readonly />
+      <label>방문 날짜</label>
+      <input type="date" name="day" id="visitDate" required />
+      <label>방문 시간</label>
+      <input type="time" name="intime" id="visitTime" required />
+      <div class="buttons">
+        <button type="submit">예약하기</button>
+        <button type="button" onclick="closeReservation()">닫기</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px; border-radius:12px; text-align:center; width:300px;">
+      <p style="margin-bottom:20px;">정말 삭제하시겠습니까?</p>
+      <button id="confirmDeleteBtn" style="background:#ff4f9a; color:white; padding:10px 20px; border:none; border-radius:6px; margin-right:10px;">삭제</button>
+      <button id="cancelDeleteBtn" style="background:#ccc; color:black; padding:10px 20px; border:none; border-radius:6px;">취소</button>
+    </div>
+  </div>
+
+  <div id="successModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9999;">
+    <div class="modal-content success">
+      <p id="successMessage">예약이 완료됐습니다.<br>마이페이지에서 확인하세요.</p>
+      <div class="modal-buttons">
+        <button id="successOkBtn">확인</button>
+      </div>
+    </div>
+  </div>
+  <!-- 후기 목록 -->
+  <div class="guestbook-wrap">
+    <h1>리뷰🌸</h1>
+    <ul id="guestList" class="guestbook-list">
+      <li class="guestbook-item"
+          th:each="g : ${guestList}"
+          th:attr="data-name=${g.name}, data-todays=${g.todays}">
+        <div class="writer" th:text="${g.name}">작성자</div>
+        <div class="memo" th:text="${g.memo}">내용</div>
+        <div class="time">
+          <span th:text="${#dates.format(g.todays, 'yyyy-MM-dd HH:mm:ss')}">날짜</span>
+        </div>
+        <button class="btn-delete" th:if="${g.name == session.name}">삭제</button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 후기 작성 -->
+  <div class="guestbook-wrap">
+    <form id="guestForm" class="guestbook-form">
+      <input type="text" name="name" placeholder="이름" th:value="${session.name}" readonly required>
+      <textarea name="memo" placeholder="후기를 입력하세요" required></textarea>
+      <button type="submit" class="btn-ajax-submit">등록</button>
+      <div id="ajaxFeedback" class="ajax-feedback"></div>
+    </form>
+  </div>
+
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=805a8eb80a70687a1a47fefb25d70a0a&libraries=services"></script>
+
+  <script th:inline="javascript">
+    var address = [[${businessAddress}]];
+    var mapContainer = document.getElementById('staticMap');
+    var mapOption = {
+      center: new kakao.maps.LatLng(33.450701, 126.570667),
+      level: 3
+    };
+
+    var map = new kakao.maps.Map(mapContainer, mapOption);
+    var geocoder = new kakao.maps.services.Geocoder();
+
+    geocoder.addressSearch(address, function(result, status) {
+      if (status === kakao.maps.services.Status.OK) {
+        var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+        var marker = new kakao.maps.Marker({
+          map: map,
+          position: coords
+        });
+        map.setCenter(coords);
+      } else {
+        alert("주소를 찾을 수 없습니다.");
+      }
+    });
+  </script>
+
+  <script>
+    // CSRF 토큰 자동 삽입
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    function openReservation() {
+      const state = "[[${personalloginstate}]]";
+      if (state !== 'true') {
+        alert('로그인이 필요합니다!');
+        location.href = '/DateCocklog';
+        return;
+      }
+      document.querySelector('.reservation-form').style.display = 'block';
+    }
+
+    function closeReservation() {
+      document.querySelector('.reservation-form').style.display = 'none';
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById('visitDate').setAttribute("min", today);
+
+    document.getElementById('visitDate').addEventListener('change', function () {
+      const selectedDate = this.value;
+      const timeInput = document.getElementById('visitTime');
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5);
+      const todayStr = now.toISOString().split("T")[0];
+
+      if (selectedDate === todayStr) {
+        timeInput.min = currentTime;
+      } else {
+        timeInput.removeAttribute("min");
+      }
+    });
+
+    //  후기 등록
+    document.getElementById('guestForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new URLSearchParams(new FormData(form));
+
+      fetch('/insertGuest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          [csrfHeader]: csrfToken
+        },
+        body: data
+      })
+      .then(res => res.json())
+      .then(entry => {
+        form.reset();
+        document.getElementById('ajaxFeedback').textContent = '등록되었습니다!';
+        location.reload();
+      })
+      .catch(err => {
+        alert('저장 실패: ' + err);
+        console.error(err);
+      });
+    });
+
+    //  삭제 확인
+    let targetToDelete = null;
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('btn-delete')) {
+        targetToDelete = e.target.closest('li');
+        document.getElementById('deleteConfirmModal').style.display = 'flex';
+      }
+    });
+
+    //  삭제 요청
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+      const name = targetToDelete.dataset.name;
+      const todays = targetToDelete.dataset.todays;
+
+      fetch('/deleteGuest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          [csrfHeader]: csrfToken
+        },
+        body: `name=${encodeURIComponent(name)}&todays=${encodeURIComponent(todays)}`
+      })
+      .then(() => {
+        document.getElementById('deleteConfirmModal').style.display = 'none';
+        location.reload();
+      })
+      .catch(err => {
+        alert('삭제 실패: ' + err);
+        document.getElementById('deleteConfirmModal').style.display = 'none';
+      });
+    });
+
+    //  삭제 취소
+    document.getElementById('cancelDeleteBtn').addEventListener('click', function () {
+      document.getElementById('deleteConfirmModal').style.display = 'none';
+    });
+  </script>
+
+  </script>
+</div>
+</body>
+</html>
