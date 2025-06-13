@@ -60,4 +60,4 @@ DateCock은 연령대, 지역, 데이트 유형을 기반으로
 
 | 이름   | 이메일 주소                                    |
 |--------|------------------------------------------------|
-| 박동인 | ehddls0318@gmail.com / ehddls147@naver.com     |
+| 김지수 | ehddls0318@gmail.com / ehddls147@naver.com     |
